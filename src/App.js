@@ -3,18 +3,23 @@ import * as BooksAPI from "./BooksAPI";
 import "./App.css";
 import SearchBar from "./SearchBar";
 import { Routes, Route } from "react-router-dom";
-import * as ContactsAPI from "./BooksAPI";
 import ShelfList from "./ShelfList";
 class BooksApp extends React.Component {
   state = {
     books: [],
   };
-  componentDidMount() {
-    ContactsAPI.getAll().then((books) => {
+  loading = () => {
+    BooksAPI.getAll().then((books) => {
       this.setState(() => ({
         books,
       }));
     });
+  };
+  back = () => {
+    this.loading();
+  };
+  componentDidMount() {
+    this.loading();
   }
   onChangeShelf = (book, shelf) => {
     this.setState((currentState) => ({
@@ -39,15 +44,7 @@ class BooksApp extends React.Component {
               />
             }
           />
-          <Route
-            path="/search"
-            element={
-              <SearchBar
-                onChangeShelf={(book, shelf) => this.onChangeShelf(book, shelf)}
-                books={this.state.books}
-              />
-            }
-          />
+          <Route path="/search" element={<SearchBar back={this.back} />} />
           <Route
             path="*"
             element={

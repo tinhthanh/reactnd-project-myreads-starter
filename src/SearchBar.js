@@ -1,39 +1,47 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import BookBox from "./BookBox";
-import PropTypes from "prop-types";
+import * as BooksAPI from "./BooksAPI";
 export default class SearchBar extends Component {
-  static propTypes = {
-    books: PropTypes.array.isRequired,
-    onChangeShelf: PropTypes.func.isRequired,
-  };
   state = {
     query: "",
+    books: [],
   };
   updateQuery = (query) => {
-    this.setState(() => ({
-      query: query.trim(),
-    }));
+    BooksAPI.search(query).then((books) => {
+      if (books instanceof Array) {
+        this.setState(() => ({
+          query,
+          books: books.sort((a, b) =>
+            (a.title || "").localeCompare(b.title || "")
+          ),
+        }));
+      } else {
+        this.setState(() => ({
+          books: [],
+        }));
+      }
+    });
   };
-  matching = (book, query) => {
-    return (
-      book.title.toLowerCase().includes(query.toLowerCase()) ||
-      book.authors.reduce(
-        (pre, cur) => cur.toLowerCase().includes(query.toLowerCase()) || pre,
-        false
-      )
-    );
+
+  onChangeShelf = (book, shelf) => {
+    this.setState((currentState) => ({
+      books: currentState.books
+        .filter((b) => {
+          return b.id !== book.id;
+        })
+        .concat([{ ...book, shelf: shelf }]),
+    }));
+    BooksAPI.update(book, shelf);
   };
   render() {
-    const { query } = this.state;
-    const { books, onChangeShelf } = this.props;
-
-    const showingBooks =
-      query === "" ? [] : books.filter((book) => this.matching(book, query));
+    const { query, books } = this.state;
+    const { back } = this.props;
+    const showingBooks = query === "" ? [] : books;
     return (
       <div className="search-books">
         <div className="search-books-bar">
-          <Link to="/">
+          <Link to="/" onClick={() => back()}>
             <button className="close-search">Close</button>
           </Link>
           <div className="search-books-input-wrapper">
@@ -56,7 +64,7 @@ export default class SearchBar extends Component {
           <ol className="books-grid">
             {showingBooks.map((book) => (
               <BookBox
-                onChangeShelf={(book, shelf) => onChangeShelf(book, shelf)}
+                onChangeShelf={(book, shelf) => this.onChangeShelf(book, shelf)}
                 key={book.id}
                 book={book}
               />

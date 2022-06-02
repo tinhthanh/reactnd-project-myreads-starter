@@ -16,13 +16,15 @@ export default class BookBox extends Component {
               style={{
                 width: 128,
                 height: 193,
-                backgroundImage: `url(${book.imageLinks.thumbnail})`,
+                backgroundImage: book.imageLinks
+                  ? `url(${book.imageLinks.thumbnail || "none"})`
+                  : "none",
               }}
             />
             <div className="book-shelf-changer">
               <select
                 onChange={(event) => onChangeShelf(book, event.target.value)}
-                value={book.shelf}
+                value={book.shelf ? book.shelf : "none"}
               >
                 <option value="move" disabled>
                   Move to...
@@ -34,8 +36,8 @@ export default class BookBox extends Component {
               </select>
             </div>
           </div>
-          <div className="book-title">{book.title}</div>
-          {book.authors.map((author) => (
+          <div className="book-title">{book.title ? book.title : ""}</div>
+          {(book.authors || []).map((author) => (
             <div key={author} className="book-authors">
               {author}
             </div>
